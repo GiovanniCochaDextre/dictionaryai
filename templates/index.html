@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>My Dictionary</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230d6efd%22/><text x=%2250%25%22 y=%2255%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial, sans-serif%22 font-weight=%22bold%22 font-size=%2250%22>AI</text></svg>">
+
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
+            --input-bg: #ffffff;
+            --input-border: #ced4da;
+            --primary-btn: #0d6efd;
+            --primary-btn-hover: #0b5ed7;
+            --success-btn: #198754;
+            --success-btn-hover: #157347;
+            --table-header-bg: #e9ecef;
+            --table-row-hover: #f1f3f5;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --border-color: #333333;
+            --input-bg: #2d2d2d;
+            --input-border: #444444;
+            --primary-btn: #2563eb;
+            --primary-btn-hover: #1d4ed8;
+            --success-btn: #16a34a;
+            --success-btn-hover: #15803d;
+            --table-header-bg: #2a2a2a;
+            --table-row-hover: #252525;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            margin: 0;
+            padding: 16px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding: 24px 40px;
+            }
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.6rem;
+        }
+
+        .theme-toggle {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            min-height: 44px;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            opacity: 0.8;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 20px 0;
+        }
+
+        .generator-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .generator-box input {
+            flex: 1 1 200px;
+        }
+
+        /* Disposición Grid responsive para los inputs del formulario */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        @media (min-width: 576px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Los campos largos abarcan las 2 columnas en pantallas medianas o grandes */
+        .form-group.full-width {
+            grid-column: span 1;
+        }
+
+        @media (min-width: 576px) {
+            .form-group.full-width {
+                grid-column: span 2;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Estilos compartidos para inputs y textareas */
+        input, textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 1rem;
+            min-height: 44px;
+            transition: border-color 0.2s, background-color 0.3s;
+        }
+
+        /* Estilos específicos para TEXTAREA */
+        textarea {
+            resize: none;
+            overflow-y: hidden;
+            padding-top: 12px;
+            padding-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-btn);
+        }
+
+        button.btn-generate {
+            background-color: var(--primary-btn);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            white-space: nowrap;
+            min-height: 44px;
+            flex: 0 0 auto;
+        }
+
+        button.btn-generate:hover {
+            background-color: var(--primary-btn-hover);
+        }
+
+        button.btn-save {
+            background-color: var(--success-btn);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 100%;
+            margin-top: 15px;
+            min-height: 48px;
+        }
+
+        button.btn-save:hover {
+            background-color: var(--success-btn-hover);
+        }
+
+        .btn-audio {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            vertical-align: middle;
+        }
+
+        .btn-audio:hover {
+            background-color: var(--border-color);
+        }
+
+        /* Tabla responsiva con barra de desplazamiento */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 750px;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--table-header-bg);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: var(--table-row-hover);
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header-container">
+    <h1>My Dictionary</h1>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" type="button">
+        🌙 Modo Oscuro
+    </button>
+</div>
+
+<hr>
+
+<form method="POST">
+
+    <h2 style="margin-top:0; font-size: 1.2rem;">Generate Entry</h2>
+
+    <div class="generator-box">
+        <input 
+            id="wordToGenerate" 
+            type="text"
+            placeholder="Type a word to generate definition...">
+
+        <button type="button" class="btn-generate" onclick="generateDemo(event)">
+            Generate
+        </button>
+    </div>
+
+    <hr>
+
+    <div class="form-grid">
+        <div class="form-group">
+            <label>English</label>
+            <input name="english" required>
+        </div>
+
+        <div class="form-group">
+            <label>Spanish</label>
+            <input name="spanish">
+        </div>
+
+        <div class="form-group">
+            <label>Type</label>
+            <input name="type">
+        </div>
+
+        <div class="form-group">
+            <label>Level</label>
+            <input name="level">
+        </div>
+
+        <div class="form-group full-width">
+            <label>Pronunciation</label>
+            <input name="pronunciation">
+        </div>
+
+        <div class="form-group full-width">
+            <label>Example EN</label>
+            <textarea name="example_en" rows="1" oninput="autoResize(this)"></textarea>
+        </div>
+
+        <div class="form-group full-width">
+            <label>Example ES</label>
+            <textarea name="example_es" rows="1" oninput="autoResize(this)"></textarea>
+        </div>
+
+        <div class="form-group full-width">
+            <label>Notes</label>
+            <textarea name="notes" rows="1" oninput="autoResize(this)"></textarea>
+        </div>
+    </div>
+
+    <button type="submit" class="btn-save">
+        Save Entry
+    </button>
+
+</form>
+
+<hr>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>English</th>
+                <th>Spanish</th>
+                <th>Type</th>
+                <th>Level</th>
+                <th>Pronunciation</th>
+                <th>Example EN</th>
+                <th>Example ES</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for word in words %}
+            <tr>
+                <td><strong>{{ word[0] }}</strong></td>
+                <td>{{ word[1] }}</td>
+                <td>{{ word[2] }}</td>
+                <td>{{ word[3] }}</td>
+                <td>
+                    {{ word[4] }}
+                    {% if word[0] %}
+                    <button type="button" class="btn-audio" onclick="speakWord('{{ word[0] | escape }}')" title="Escuchar pronunciación">
+                        🔊
+                    </button>
+                    {% endif %}
+                </td>
+                <td>{{ word[5] }}</td>
+                <td>{{ word[6] }}</td>
+                <td>{{ word[7] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+// --- Lógica del Modo Oscuro ---
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateToggleButton(savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateToggleButton(newTheme);
+}
+
+function updateToggleButton(theme) {
+    const btn = document.getElementById('themeToggle');
+    btn.innerHTML = theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Oscuro';
+}
+
+initTheme();
+
+// --- Lógica de Auto-Ajuste de Altura para Textareas ---
+function autoResize(textarea) {
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+}
+
+function updateAllTextareas() {
+    document.querySelectorAll('form textarea').forEach(autoResize);
+}
+
+// --- Consulta a la API Gemini ---
+async function generateDemo(event) {
+    if (event) event.preventDefault();
+
+    const wordInput = document.getElementById("wordToGenerate").value.trim();
+    if (!wordInput) {
+        alert("Por favor, ingresa una palabra.");
+        return;
+    }
+
+    const btn = document.querySelector(".btn-generate");
+    const originalText = btn.innerText;
+    btn.innerText = "Cargando...";
+    btn.disabled = true;
+
+    try {
+        const response = await fetch("/generate?word=" + encodeURIComponent(wordInput));
+        if (!response.ok) throw new Error("Error en la respuesta del servidor");
+        
+        const data = await response.json();
+
+        document.querySelector("[name='english']").value = data.english || '';
+        document.querySelector("[name='spanish']").value = data.spanish || '';
+        document.querySelector("[name='type']").value = data.type || '';
+        document.querySelector("[name='level']").value = data.level || '';
+        document.querySelector("[name='pronunciation']").value = data.pronunciation || '';
+        
+        document.querySelector("[name='example_en']").value = data.example_en || '';
+        document.querySelector("[name='example_es']").value = data.example_es || '';
+        document.querySelector("[name='notes']").value = data.notes || '';
+
+        // Recalcula la altura de las cajas de texto tras recibir la respuesta
+        updateAllTextareas();
+
+    } catch (error) {
+        console.error("Hubo un problema al generar la entrada:", error);
+        alert("No se pudo obtener la definición desde Gemini.");
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+}
+
+// --- Text-To-Speech Nativo ---
+function speakWord(word) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.85;
+
+        window.speechSynthesis.speak(utterance);
+    } else {
+        alert("Tu navegador no soporta la síntesis de voz.");
+    }
+}
+</script>
+
+</body>
+</html>
