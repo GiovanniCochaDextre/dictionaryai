@@ -16,38 +16,72 @@ app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "dictionary.db")
 
+# Detectar URL de base de datos PostgreSQL en Render/Supabase/Neon
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
 # Configuración del cliente Gemini
 # Lee automáticamente la variable de entorno GEMINI_API_KEY
 client = genai.Client()
 
 
 def get_db_connection():
-    """Crea y retorna una conexión a la base de datos SQLite."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    """Crea y retorna una conexión a SQLite o PostgreSQL según el entorno."""
+    if DATABASE_URL:
+        import psycopg2
+        import psycopg2.extras
+
+        # Asegurar prefijo postgresql:// exigido por drivers actuales
+        db_url = DATABASE_URL
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+        conn = psycopg2.connect(db_url)
+        return conn
+    else:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        return conn
 
 
 def init_db():
     """Crea la tabla si no existe al iniciar la aplicación."""
     conn = get_db_connection()
     cursor = conn.cursor()
-
-    cursor.execute(
+    
+    if DATABASE_URL:
+        # Sintaxis para PostgreSQL
+        cursor.execute(
+            """
+        CREATE TABLE IF NOT EXISTS vocabulary (
+            id SERIAL PRIMARY KEY,
+            english TEXT,
+            spanish TEXT,
+            type TEXT,
+            level TEXT,
+            pronunciation TEXT,
+            example_en TEXT,
+            example_es TEXT,
+            notes TEXT
+        )
         """
-    CREATE TABLE IF NOT EXISTS vocabulary (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        english TEXT,
-        spanish TEXT,
-        type TEXT,
-        level TEXT,
-        pronunciation TEXT,
-        example_en TEXT,
-        example_es TEXT,
-        notes TEXT
-    )
-    """
-    )
+        )
+    else:
+        # Sintaxis para SQLite
+        cursor.execute(
+            """
+        CREATE TABLE IF NOT EXISTS vocabulary (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            english TEXT,
+            spanish TEXT,
+            type TEXT,
+            level TEXT,
+            pronunciation TEXT,
+            example_en TEXT,
+            example_es TEXT,
+            notes TEXT
+        )
+        """
+        )
 
     conn.commit()
     conn.close()
@@ -141,19 +175,23 @@ def home():
             conn = get_db_connection()
             cursor = conn.cursor()
 
+            # Marcador de posición adaptativo (? para SQLite, %s para PostgreSQL)
+            param = "%s" if DATABASE_URL else "?"
+
             cursor.execute(
-                "SELECT id FROM vocabulary WHERE lower(english)=lower(?)",
+                f"SELECT id FROM vocabulary WHERE lower(english)=lower({param})",
                 (english_formatted,),
             )
             existing = cursor.fetchone()
 
             if not existing:
-                cursor.execute(
-                    """
+                query = f"""
                     INSERT INTO vocabulary
                     (english, spanish, type, level, pronunciation, example_en, example_es, notes)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
+                    VALUES ({param}, {param}, {param}, {param}, {param}, {param}, {param}, {param})
+                """
+                cursor.execute(
+                    query,
                     (
                         english_formatted,
                         spanish,
