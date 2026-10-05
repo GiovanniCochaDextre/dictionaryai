@@ -98,20 +98,50 @@ def generate():
     if not word:
         return jsonify({"error": "No word provided"}), 400
 
-    prompt = f"Genera una entrada de diccionario completa para la palabra: {word}"
+    # Prompt explícito: Especifica que el objetivo de aprendizaje es el INGLÉS.
+    prompt = (
+        f"El usuario desea aprender inglés y ha proporcionado el término: '{word}'. "
+        f"Si la palabra está en español, tradúcela primero al inglés. "
+        f"Genera los datos para el diccionario asegurando que el campo 'pronunciation' "
+        f"corresponda SIEMPRE a la pronunciación (fonética o figurada) de la palabra EN INGLÉS."
+    )
 
-    # Schema JSON estructurado para Gemini 3.8
+    # Schema JSON estructurado refinado
     json_schema = {
         "type": "OBJECT",
         "properties": {
-            "english": {"type": "STRING"},
-            "spanish": {"type": "STRING"},
-            "type": {"type": "STRING"},
-            "level": {"type": "STRING"},
-            "pronunciation": {"type": "STRING"},
-            "example_en": {"type": "STRING"},
-            "example_es": {"type": "STRING"},
-            "notes": {"type": "STRING"},
+            "english": {
+                "type": "STRING",
+                "description": "La palabra o frase en inglés.",
+            },
+            "spanish": {
+                "type": "STRING",
+                "description": "Traducción al español.",
+            },
+            "type": {
+                "type": "STRING",
+                "description": "Categoría gramatical (Noun, Verb, Adjective, Phrasal Verb, etc.).",
+            },
+            "level": {
+                "type": "STRING",
+                "description": "Nivel CEFR (A1, A2, B1, B2, C1, C2).",
+            },
+            "pronunciation": {
+                "type": "STRING",
+                "description": "Pronunciación en inglés (ej. IPA o figurada en español como 'ápl'). NUNCA la pronunciación en español.",
+            },
+            "example_en": {
+                "type": "STRING",
+                "description": "Ejemplo de uso en inglés.",
+            },
+            "example_es": {
+                "type": "STRING",
+                "description": "Traducción del ejemplo al español.",
+            },
+            "notes": {
+                "type": "STRING",
+                "description": "Notas gramaticales, sinónimos o consejos de uso.",
+            },
         },
         "required": [
             "english",
@@ -128,7 +158,6 @@ def generate():
     max_retries = 3
     for attempt in range(max_retries):
         try:
-            # Nueva Interactions API recomendada para gemini-3.8-flash
             interaction = client.interactions.create(
                 model="gemini-3.8-flash",
                 input=prompt,
